@@ -1,0 +1,1 @@
+  love.window.updateMode( 1000, 1000)
