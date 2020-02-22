@@ -11,6 +11,7 @@ function ConstructButton(Text, Position, Padding, TName, Depth)
   button.text = Text
   button.position = Position
   button.textFittingMinimumPadding = Padding
+  button.zIndex = Depth
   button:resizeToText()
   return button
 end

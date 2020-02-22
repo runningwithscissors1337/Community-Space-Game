@@ -53,7 +53,7 @@ function MakeSystem(N, L, ML, P, R, EqISys, Eq, BuffWM, B, SR, PassEfWP, EfS, Pa
   sys.Level = L or 2
   sys.MaxLevel = ML or 10
   sys.Power = P or 2
-  sys.Room = R or 0*
+  sys.Room = R or 0
   sys.EquipmentInSys = EqISys or false
   sys.Equipment = Eq or {}
   sys.BuffWhenManned = BuffWM or true
