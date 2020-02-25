@@ -1,4 +1,5 @@
 -----basically just gets all the settings and stuff, then calls the actual program
+Timer = require "timer"
 require("Settings/UISettings")
 require("Class")
 require("GUIElements/GUIMain")

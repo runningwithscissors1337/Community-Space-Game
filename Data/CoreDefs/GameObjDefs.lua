@@ -1,3 +1,7 @@
+Class("RoomTiles") ({
+    ["TileImage"] = love.graphics.newImage("Data/RoomTile.png")
+},
+{GUIElement})
 ---Define system base class:
 Class("SystemClass") {
   ["Name"] = "Shields",
@@ -5,104 +9,58 @@ Class("SystemClass") {
   ["Level"] = 2,
   ["MaxLevel"] = 10,
   ["Power"] = 2,
-  ["Room"] = 0,
+  ["UpgradeCost"] = MakeUpgrScalingRule(6, 50, 10, 0, 5),
   ["EquipmentInSys"] = false,
   ["Equipment"] = {},
   ["BuffWhenManned"] = true,
-  ["BuffMult"] = 1,
+  ["CurrentBuffMult"] = 1,
+  ["MannedBuffMult"] = 0.85,
+  ["UnmannedBuffMult"] = 1,
   ["Manned"] = false,
-  ["Buff"] = function(ShSkL)
-    if self.Manned then
-    self.BuffMult = (self.BuffMult - (15 + (5*ShSkL))/100)
-  end
-end,
   ["ActiveEffectEndMultiplier"] = 1,
-  ["UpgrScalingRule"] = function(Level)
-    if Level > 6 then
-      return 50 + ((Level-1)*10)
-    else
-    return (Level*10)
-  end
-end,
   ["PassiveEffectWhenPowered"] = true,
-  ["EffectScaling"] = function(Power)
-    
-  end,
-  ["PassiveEffect"] = function(Ship)
-    if Ship.Shield < (math.floor(self.Power/2)) then
-    Wait(1*self.ActiveEffectEndMultiplier*BuffMult)
-    Ship.Shield = Ship.Shield + 1
-  end
-end,
-  ["ActiveEffectWhenPowered"] = true,
-  ["ActiveEffect"] = function(Ship)
-    Ship.Shield = (Ship.Shield*2)
-    Wait(5)
-    self.ActiveEffectWhenPowered = false
-    self.EfEndMult = 2
-    Wait(10)
-    self.EfEndMult = 1
-    self.ActiveEffectWhenPowered = true
-    Ship.Shield = 0
-end
+  ["ActiveEffectWhenPowered"] = true
 }
-function MakeSystem(N, L, ML, P, R, EqISys, Eq, BuffWM, B, SR, PassEfWP, EfS, PassEf, ActEfWP, ActEf)
-  sys = SystemClass:new()
-  sys.Name = N or "ErrorWithName"
-  sys.Damage = 0
-  sys.Level = L or 2
-  sys.MaxLevel = ML or 10
-  sys.Power = P or 2
-  sys.Room = R or 0
-  sys.EquipmentInSys = EqISys or false
-  sys.Equipment = Eq or {}
-  sys.BuffWhenManned = BuffWM or true
-  sys.Buff = B or function()
-  sys.UpgrScalingRule = SR or function(Level)
-    if Level > 6 then
-    return 50 + ((Level-1)*10)
-  else
-    return (Level*10)
+---Define door class:
+Class("DoorClass") {
+  ["Room1Index"] = 1,
+  ["Room1Size"] = {2, 2},
+  ["Room1Tile"] = {2, 1},
+  ["Airlock"] = true,
+  ["Room2Index"] = 2,
+  ["Room2Size"] = {2, 2},
+  ["Room2Tile"] = {1, 1}
+}
+function MakeDoor(R1I, R1S, R1T, A, R2I, R2S, R2T)
+  door = DoorClass:new()
+  door.Room1Index = R1I or 1
+  door.Room1Size = R1S or {2, 2}
+  door.Room1Tile = R1T or {2, 1}
+  A = a or true
+  door.Airlock = A
+  if not A then
+    door.Room2Index = R2I or 2
+    door.Room2Index = R2S or {2, 2}
+    door.Room2Tile = R2T or {1, 1}
   end
+  return door
 end
-  sys.PassiveEffectWhenPowered = PassEfWP or true
-  sys.EffectScaling = EfS or function(Power)
-    
-  end
-  sys.PassiveEffect = PassEf or function(Ship)
-    if Ship.Shield < (math.floor(self.Power/2)) then
-    Wait(1*self.ActiveEffectEndMultiplier)
-    Ship.Shield = Ship.Shield + 1
-end
-end
-  sys.ActiveEffectWhenPowered = ActEfWP or true
-  sys.ActiveEffect = ActEf or function(Ship)
-    Ship.Shield = (Ship.Shield*2)
-    Wait(5)
-    self.ActiveEffectWhenPowered = false
-    self.EfEndMult = 2
-    Wait(10)
-    self.EfEndMult = 1
-    self.ActiveEffectWhenPowered = true
-    Ship.Shield = 0
-  end
-  end
-end
----Define basic systems:
-function NewShieldSys(R)
-  MakeSystem("Shields", 2, 12, 2, R, false, {}, true, false)
-end
-function NewWeaponSys(EqWeapons, R)
-  MakeSystem("Weapons", 4, 16, 0, R, true, EqWeapons, true, false)
-end
+---Define room class + list:
+TargetableRooms = {}
+Class("RoomClass") {
+  ["Location"] = {0, 0},
+  ["Ox"] = 100,
+  ["Size"] = {2, 2},
+  ["Doors"] = {},
+  ["System"] = SystemClass:new()
+  }
 ---Defines ship base class:
 Class("ShipClass") {
   ["MaxHull"] = 50,
   ["Hull"] = 50,
   ["Shield"] = 0,
-  ["TakeDamage"] = function(Damage, TargetedRoom)
-    self.Hull = self.Hull - Damage
-  end,
+  ["ShieldRechargeLerp"] = 0,
+  ["ShieldBuffer"] = 1, ---how many impacts each layer of shield protects against
   ["MaxReactor"] = 50,
   ["Reactor"] = 10,
   ["MaxSystems"] = 20,
